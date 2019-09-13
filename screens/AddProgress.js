@@ -40,11 +40,8 @@ export default class AddProgress extends React.Component {
       Year: this.state.yeara
     });
     this.onAddItem();
-    //   firebase.database().ref('Graphs').on('child_added', function(snapshot) {
-    //     var dates2 = snapshot.val().Values
 
     //     console.log(dates2)
-
     // });
   };
 
