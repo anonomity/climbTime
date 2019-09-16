@@ -15,7 +15,6 @@ import * as firebase from "firebase";
 
 import { LineChart } from "react-native-chart-kit";
 
-
 const screenWidth = Dimensions.get("window").width;
 
 export default class AddProgress extends React.Component {
@@ -30,12 +29,14 @@ export default class AddProgress extends React.Component {
       temp: "",
       yeara: "",
       graphTitle: "",
-      graphTitle2: ""
+      graphTitle2: "",
+      displayName: "",
+      name: ""
     };
   }
 
   senditems = (item, item2) => {
-    var itemListRef = firebase.database().ref("Graphs/magda");
+    var itemListRef = firebase.database().ref(`Graphs/${this.state.name}`);
     var newItemRef = itemListRef.push();
     newItemRef.set({
       Values: item,
@@ -56,63 +57,75 @@ export default class AddProgress extends React.Component {
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
       firebase
-      .database()
-      .ref(`Graphs/${authenticate.displayName}`)
-      .once("value", snapshot => {
+        .database()
+        .ref(`Graphs/${authenticate.displayName}`)
+        .once("value", snapshot => {
+          snapshot.forEach(child => {
+            var vals = child.val();
+
+            if (this.state.temp != vals.Dates) {
+              this.setState(state => {
+                const data = state.data.concat(vals.Values);
+                const labels = state.labels.concat(vals.Dates);
+
+                return {
+                  data,
+                  labels,
+                  date: "",
+                  amount: ""
+                };
+              });
+            } else {
+              var a = this.state.labels.indexOf(vals.Dates);
+              var b = parseInt(this.state.data[a]) + parseInt(vals.Values);
+              this.setState(data => {
+                this.state.data[a] = b;
+              });
+              this.forceUpdate();
+            }
+
+            this.state.temp = vals.Dates;
+          });
+
+          this.setState({
+            name: authenticate.displayName
+          });
+        });
+
+      var ref = firebase
+        .database()
+        .ref(`GraphName/${authenticate.displayName}`);
+      ref.on("value", snapshot => {
         snapshot.forEach(child => {
-          var vals = child.val();
-
-          if (this.state.temp != vals.Dates) {
-            this.setState(state => {
-              const data = state.data.concat(vals.Values);
-              const labels = state.labels.concat(vals.Dates);
-
-              return {
-                data,
-                labels,
-                date: "",
-                amount: ""
-              };
-            });
-          } else {
-            var a = this.state.labels.indexOf(vals.Dates);
-            var b = parseInt(this.state.data[a]) + parseInt(vals.Values);
-            this.setState(data => {
-              this.state.data[a] = b;
-            });
-            this.forceUpdate();
-          }
-
-          this.state.temp = vals.Dates;
+          var vals2 = child.val();
+          const imie = authenticate.displayName;
+          this.setState({
+            name: imie,
+            graphTitle2: vals2.Graphlabel
+          });
         });
       });
 
+      // ).then(function(snapshot) {
+      //   const graphingTitle = snapshot.child("Graphlabel").val();
+      //   const imie = authenticate.displayName
+      //   console.log(graphingTitle)
+      //   this.setState({
+      //     name: imie
+      //   })
 
-    var ref = firebase.database().ref("GraphName");
-    ref.once("value").then(function(snapshot) {
-      var graphingTitle = snapshot.child("Graphlabel").val();
-      console.log(this.state.graphingTitle)
-      this.setState({
-        graphTitle2: graphingTitle
-      })
-      
+      // });
     });
-
-
-
-       
-        })
 
     var that = this;
     var date = new Date().getDate(); //Current Date
     var month = new Date().getMonth() + 1; //Current Month
     var year = new Date().getFullYear(); //Current Year
-    
+
     that.setState({
       //Setting the value of the date time
       date2: date + "/" + month,
       yeara: year
-      
     });
   }
 
@@ -140,11 +153,29 @@ export default class AddProgress extends React.Component {
   };
 
   sendLabel = labelB => {
-    var graphRef = firebase.database().ref("GraphName");
-    var newItemRef2 = graphRef.push();
-    newItemRef2.set({
-      Graphlabel: labelB
+    var graphRef = firebase.database().ref(`GraphName/${this.state.name}`);
+    graphRef.once("value").then(function(snapshot) {
+      if (snapshot.hasChild("Graphlabel")) {
+        graphRef.update({ Graphlabel: this.graphTitle });
+        console.log("this one if");
+      } else {
+        var newItemRef2 = graphRef.push();
+
+        newItemRef2.set({
+          Graphlabel: labelB
+        });
+      }
     });
+    // var ref = firebase.database().ref(`GraphName/${this.state.name}`);
+    // ref.on("value", snapshot => {
+    //   snapshot.forEach(child => {
+    //     var vals2 = child.val();
+
+    //     this.setState({
+    //       graphTitle2: vals2.Graphlabel
+    //     });
+    //   });
+    // });
   };
   render() {
     return (
@@ -180,7 +211,7 @@ export default class AddProgress extends React.Component {
           height={220}
           chartConfig={chartConfig}
         />
-        <Text style={styles.title}>Test : {this.state.graphTitle2}</Text>
+        <Text style={styles.title}>{this.state.graphTitle2}</Text>
         <TextInput
           style={styles.itemInput}
           onChangeText={text => {
