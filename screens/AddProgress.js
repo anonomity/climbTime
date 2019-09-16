@@ -10,10 +10,11 @@ import {
   Alert,
   FlatList
 } from "react-native";
-import { Form, Input, Item, Label, Button, Card } from "native-base";
+import { Form, Input, Item, Label, Button, Card, Content } from "native-base";
 import * as firebase from "firebase";
 
 import { LineChart } from "react-native-chart-kit";
+
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -27,7 +28,9 @@ export default class AddProgress extends React.Component {
       data: [0],
       labels: ["start"],
       temp: "",
-      yeara: ""
+      yeara: "",
+      graphTitle: "",
+      graphTitle2: ""
     };
   }
 
@@ -79,29 +82,42 @@ export default class AddProgress extends React.Component {
             });
             this.forceUpdate();
           }
-          
+
           this.state.temp = vals.Dates;
         });
       });
+
+
+    var ref = firebase.database().ref("GraphName");
+    ref.once("value").then(function(snapshot) {
+      var graphingTitle = snapshot.child("Graphlabel").val();
+      console.log(this.state.graphingTitle)
+      this.setState({
+        graphTitle2: graphingTitle
+      })
+      
+    });
+
+
+
        
         })
-    
+
     var that = this;
     var date = new Date().getDate(); //Current Date
     var month = new Date().getMonth() + 1; //Current Month
     var year = new Date().getFullYear(); //Current Year
-
+    
     that.setState({
       //Setting the value of the date time
       date2: date + "/" + month,
-      yeara : year
+      yeara: year
+      
     });
   }
 
   onAddItem = () => {
-    
     if (this.state.temp != this.state.date2) {
-      
       this.setState(state => {
         const data = state.data.concat(this.state.amount);
         const labels = state.labels.concat(this.state.date2);
@@ -114,7 +130,6 @@ export default class AddProgress extends React.Component {
         };
       });
     } else {
-      
       var a = this.state.labels.indexOf(this.state.date2);
       var b = parseInt(this.state.data[a]) + parseInt(this.state.amount);
       this.setState(data => {
@@ -124,15 +139,34 @@ export default class AddProgress extends React.Component {
     }
   };
 
+  sendLabel = labelB => {
+    var graphRef = firebase.database().ref("GraphName");
+    var newItemRef2 = graphRef.push();
+    newItemRef2.set({
+      Graphlabel: labelB
+    });
+  };
   render() {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
+      <Content>
+        <Item style={styles.button}>
+          <Input
+            onChangeText={labelB => {
+              this.setState({ graphTitle: labelB });
+            }}
+            value={this.state.graphTitle}
+            placeholder="Title Name"
+          />
+        </Item>
+        <Button
+          full
+          light
+          onPress={() => {
+            this.sendLabel(this.state.graphTitle);
+          }}
+        >
+          <Text>Save</Text>
+        </Button>
         <LineChart
           data={{
             labels: this.state.labels,
@@ -146,7 +180,7 @@ export default class AddProgress extends React.Component {
           height={220}
           chartConfig={chartConfig}
         />
-        <Text style={styles.title}>Add Item</Text>
+        <Text style={styles.title}>Test : {this.state.graphTitle2}</Text>
         <TextInput
           style={styles.itemInput}
           onChangeText={text => {
@@ -159,7 +193,7 @@ export default class AddProgress extends React.Component {
         <Button
           style={styles.button}
           full
-          rounded
+          block
           success
           onPress={() => {
             this.senditems(this.state.amount, this.state.date2);
@@ -171,7 +205,7 @@ export default class AddProgress extends React.Component {
         <Button
           style={styles.button}
           full
-          rounded
+          block
           danger
           onPress={() => {
             this.props.navigation.navigate("Home");
@@ -179,7 +213,7 @@ export default class AddProgress extends React.Component {
         >
           <Text style={styles.buttonText}>Home</Text>
         </Button>
-      </View>
+      </Content>
     );
   }
 }
@@ -196,6 +230,7 @@ const styles = StyleSheet.create({
     marginTop: 100,
     marginBottom: 100
   },
+
   iconContainer: {
     width: 250,
     height: 250,
@@ -210,6 +245,7 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 20
   },
+
   buttonText: {
     fontSize: 18,
     color: "#111",
