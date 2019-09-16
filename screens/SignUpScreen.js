@@ -19,6 +19,14 @@ export default class SignUpScreen extends React.Component {
     header: null
   };
 
+  writeUserData( name, email,) {
+    firebase.database().ref('users/' + name).set({
+      
+      firstName: name,
+      email: email,
+    });
+  }
+
   signupUser =(name,email,password) => {
     firebase
       .auth()
@@ -35,6 +43,8 @@ export default class SignUpScreen extends React.Component {
       .catch( error => {
         alert(error.message)
       })
+      this.writeUserData(name,email)
+    
   };
   render() {
     return (
