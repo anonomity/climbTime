@@ -27,21 +27,25 @@ export default class AddProgress extends React.Component {
       data: [0],
       labels: ["start"],
       temp: "",
-      yeara: ""
+      yeara: "",
+      name: ""
     };
   }
 
   senditems = (item, item2) => {
-    var itemListRef = firebase.database().ref("Graphs/magda");
+    var itemListRef = firebase.database().ref(`Graphs/${this.state.name}`);
     var newItemRef = itemListRef.push();
     newItemRef.set({
       Values: item,
       Dates: item2,
-      Year: this.state.yeara
+     // Year: this.state.yeara
     });
     this.onAddItem();
+    //   firebase.database().ref('Graphs').on('child_added', function(snapshot) {
+    //     var dates2 = snapshot.val().Values
 
     //     console.log(dates2)
+:
     // });
   };
 
@@ -51,57 +55,61 @@ export default class AddProgress extends React.Component {
   };
 
   componentDidMount() {
+  //   firebase
+  //     .database()
+  //     .ref("Graph")
+  //     .once("value", snapshot => {
+  //       snapshot.forEach(child => {
+  //         var vals = child.val();
+
+  //         if (this.state.temp != vals.Dates) {
+  //           this.setState(state => {
+  //             const data = state.data.concat(vals.Values);
+  //             const labels = state.labels.concat(vals.Dates);
+
+  //             return {
+  //               data,
+  //               labels,
+  //               date: "",
+  //               amount: ""
+  //             };
+  //           });
+  //         } else {
+  //           var a = this.state.labels.indexOf(vals.Dates);
+  //           var b = parseInt(this.state.data[a]) + parseInt(vals.Values);
+  //           this.setState(data => {
+  //             this.state.data[a] = b;
+  //           });
+  //           this.forceUpdate();
+  //         }
+
+  //         this.state.temp = vals.Dates;
+  //       });
+  //     });
+  //   var that = this;
+  //   var date = new Date().getDate(); //Current Date
+  //   var month = new Date().getMonth() + 1; //Current Month
+  //   var year = new Date().getFullYear(); //Current Year
+
+  //   that.setState({
+  //     //Setting the value of the date time
+  //     date2: date + "/" + month,
+  //     yeara: year
+  //   });
+
     firebase.auth().onAuthStateChanged(authenticate => {
-      firebase
-      .database()
-      .ref(`Graphs/${authenticate.displayName}`)
-      .once("value", snapshot => {
-        snapshot.forEach(child => {
-          var vals = child.val();
-
-          if (this.state.temp != vals.Dates) {
-            this.setState(state => {
-              const data = state.data.concat(vals.Values);
-              const labels = state.labels.concat(vals.Dates);
-
-              return {
-                data,
-                labels,
-                date: "",
-                amount: ""
-              };
-            });
-          } else {
-            var a = this.state.labels.indexOf(vals.Dates);
-            var b = parseInt(this.state.data[a]) + parseInt(vals.Values);
-            this.setState(data => {
-              this.state.data[a] = b;
-            });
-            this.forceUpdate();
-          }
-          
-          this.state.temp = vals.Dates;
-        });
-      });
-       
+      if(authenticate){
+        this.setState({
+          name: authenticate.displayName
         })
-    
-    var that = this;
-    var date = new Date().getDate(); //Current Date
-    var month = new Date().getMonth() + 1; //Current Month
-    var year = new Date().getFullYear(); //Current Year
-
-    that.setState({
-      //Setting the value of the date time
-      date2: date + "/" + month,
-      yeara : year
-    });
+      } else {
+        this.props.navigation.replace("Signin");
+      }
+    })
   }
 
   onAddItem = () => {
-    
     if (this.state.temp != this.state.date2) {
-      
       this.setState(state => {
         const data = state.data.concat(this.state.amount);
         const labels = state.labels.concat(this.state.date2);
@@ -114,7 +122,6 @@ export default class AddProgress extends React.Component {
         };
       });
     } else {
-      
       var a = this.state.labels.indexOf(this.state.date2);
       var b = parseInt(this.state.data[a]) + parseInt(this.state.amount);
       this.setState(data => {
@@ -146,7 +153,8 @@ export default class AddProgress extends React.Component {
           height={220}
           chartConfig={chartConfig}
         />
-        <Text style={styles.title}>Add Item</Text>
+         
+        <Text style={styles.title}>Add Item {this.state.name}</Text>
         <TextInput
           style={styles.itemInput}
           onChangeText={text => {
