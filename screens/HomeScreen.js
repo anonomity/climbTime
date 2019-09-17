@@ -9,7 +9,9 @@ export default class HomeScreen extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      name: ""
+      name: "",
+      hours: "",
+      minutes: ""
     }
   }
   static navigationOptions = {
@@ -27,6 +29,14 @@ export default class HomeScreen extends React.Component {
         this.props.navigation.replace("Signin");
       }
     })
+    var that = this;
+    var time = new Date().getHours();
+    var time2 = new Date().getMinutes();
+
+    that.setState({
+        hours: time,
+        minutes: time2
+    })
   }
 
   signoutUser =() => {
@@ -40,6 +50,7 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <Text style={styles.HeaderText}>ClimbTime</Text>
+        <Text>{this.state.hours} : {this.state.minutes}</Text>
         <View style={styles.logoContainer}>
         
           <Image style={styles.iconContainer} source={require("../assets/Progress.png")} />
@@ -49,6 +60,14 @@ export default class HomeScreen extends React.Component {
         <View style={styles.userDetails}>
           <Text>Welcome {this.state.name}</Text>
         </View>
+        <TouchableOpacity
+          style={styles.floatButton3}
+          onPress={() => {
+            this.props.navigation.navigate("Financez");
+          }}
+        ><Text style={styles.buttonPress}>Start Tracking Finances</Text>
+         
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.floatButton}
           onPress={() => {
@@ -91,7 +110,7 @@ const styles = StyleSheet.create({
     width: 500,
     fontWeight: "bold",
     position: "absolute",
-    bottom: 85,
+    bottom: 70,
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "#FFF",
@@ -107,6 +126,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     position: "absolute",
     bottom: 20,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#FFF",
+    height: 55,
+    backgroundColor: "#019031"
+  },
+  floatButton3: {
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 500,
+    fontWeight: "bold",
+    position: "absolute",
+    bottom: 120,
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "#FFF",
