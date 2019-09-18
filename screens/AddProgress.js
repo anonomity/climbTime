@@ -23,14 +23,12 @@ export default class AddProgress extends React.Component {
     this.state = {
       amount: "",
       date: "",
-      items: [],
       data: [0],
       labels: ["start"],
       temp: "",
-      yeara: "",
+      year: "",
       graphTitle: "",
       graphTitle2: "",
-      displayName: "",
       name: ""
     };
   }
@@ -41,12 +39,9 @@ export default class AddProgress extends React.Component {
     newItemRef.set({
       Values: item,
       Dates: item2,
-      Year: this.state.yeara
+      Year: this.state.year
     });
     this.onAddItem();
-
-    //     console.log(dates2)
-    // });
   };
 
   static navigationOptions = {
@@ -62,33 +57,12 @@ export default class AddProgress extends React.Component {
         .once("value", snapshot => {
           snapshot.forEach(child => {
             var vals = child.val();
-
-            if (this.state.temp != vals.Dates) {
-              this.setState(state => {
-                const data = state.data.concat(vals.Values);
-                const labels = state.labels.concat(vals.Dates);
-
-                return {
-                  data,
-                  labels,
-                  date: "",
-                  amount: ""
-                };
-              });
-            } else {
-              var a = this.state.labels.indexOf(vals.Dates);
-              var b = parseInt(this.state.data[a]) + parseInt(vals.Values);
-              this.setState(data => {
-                this.state.data[a] = b;
-              });
-              this.forceUpdate();
-            }
-
+            this.setState({
+              amount: vals.Values,
+              date2: vals.Dates
+            });
+            this.onAddItem();
             this.state.temp = vals.Dates;
-          });
-
-          this.setState({
-            name: authenticate.displayName
           });
         });
 
@@ -105,31 +79,22 @@ export default class AddProgress extends React.Component {
           });
         });
       });
-
-      // ).then(function(snapshot) {
-      //   const graphingTitle = snapshot.child("Graphlabel").val();
-      //   const imie = authenticate.displayName
-      //   console.log(graphingTitle)
-      //   this.setState({
-      //     name: imie
-      //   })
-
-      // });
     });
 
     var that = this;
-    var date = new Date().getDate(); //Current Date
+    var day = new Date().getDate(); //Current Date
     var month = new Date().getMonth() + 1; //Current Month
     var year = new Date().getFullYear(); //Current Year
 
     that.setState({
       //Setting the value of the date time
-      date2: date + "/" + month,
-      yeara: year
+      date2: day + "/" + month,
+      year: year
     });
   }
 
   onAddItem = () => {
+    // If its a different Date then the last data, Then dont add to array
     if (this.state.temp != this.state.date2) {
       this.setState(state => {
         const data = state.data.concat(this.state.amount);
@@ -147,6 +112,7 @@ export default class AddProgress extends React.Component {
       var b = parseInt(this.state.data[a]) + parseInt(this.state.amount);
       this.setState(data => {
         this.state.data[a] = b;
+        this.state.amount = "";
       });
       this.forceUpdate();
     }
@@ -155,27 +121,11 @@ export default class AddProgress extends React.Component {
   sendLabel = labelB => {
     var graphRef = firebase.database().ref(`GraphName/${this.state.name}`);
     graphRef.once("value").then(function(snapshot) {
-      if (snapshot.hasChild("Graphlabel")) {
-        graphRef.update({ Graphlabel: this.graphTitle });
-        console.log("this one if");
-      } else {
-        var newItemRef2 = graphRef.push();
-
-        newItemRef2.set({
-          Graphlabel: labelB
-        });
-      }
+      var newItemRef2 = graphRef.push();
+      newItemRef2.set({
+        Graphlabel: labelB
+      });
     });
-    // var ref = firebase.database().ref(`GraphName/${this.state.name}`);
-    // ref.on("value", snapshot => {
-    //   snapshot.forEach(child => {
-    //     var vals2 = child.val();
-
-    //     this.setState({
-    //       graphTitle2: vals2.Graphlabel
-    //     });
-    //   });
-    // });
   };
   render() {
     return (
