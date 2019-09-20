@@ -16,7 +16,7 @@ import * as firebase from "firebase";
 import { LineChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
-
+let dbVals = [];
 export default class AddProgress extends React.Component {
   constructor(props) {
     super(props);
@@ -25,13 +25,19 @@ export default class AddProgress extends React.Component {
       date: "",
       data: [0],
       labels: ["start"],
-      temp: "",
       year: "",
       graphTitle: "",
       graphTitle2: "",
-      name: ""
+      name: "",
+      arr: [],
+      fullDate: ""
     };
   }
+
+  static navigationOptions = {
+    title: "Graph",
+    header: null
+  };
 
   senditems = (item, item2) => {
     var itemListRef = firebase.database().ref(`Graphs/${this.state.name}`);
@@ -44,9 +50,11 @@ export default class AddProgress extends React.Component {
     this.onAddItem();
   };
 
-  static navigationOptions = {
-    title: "Graph",
-    header: null
+  filterDefault = v => {
+    this.setState({
+      arr: v.filter(v => v.time.split("/")[0] == 18)
+    });
+    
   };
 
   componentDidMount() {
@@ -57,13 +65,9 @@ export default class AddProgress extends React.Component {
         .once("value", snapshot => {
           snapshot.forEach(child => {
             var vals = child.val();
-            this.setState({
-              amount: vals.Values,
-              date2: vals.Dates
-            });
-            this.onAddItem();
-            this.state.temp = vals.Dates;
+            dbVals.push({ time: vals.Dates, money: vals.Values });
           });
+          this.filterDefault(dbVals);
         });
 
       var ref = firebase
@@ -89,34 +93,10 @@ export default class AddProgress extends React.Component {
     that.setState({
       //Setting the value of the date time
       date2: day + "/" + month,
-      year: year
+      year: year,
+      fullDate: day + "/" + month + "/" + year
     });
   }
-
-  onAddItem = () => {
-    // If its a different Date then the last data, Then dont add to array
-    if (this.state.temp != this.state.date2) {
-      this.setState(state => {
-        const data = state.data.concat(this.state.amount);
-        const labels = state.labels.concat(this.state.date2);
-
-        return {
-          data,
-          labels,
-          date: "",
-          amount: ""
-        };
-      });
-    } else {
-      var a = this.state.labels.indexOf(this.state.date2);
-      var b = parseInt(this.state.data[a]) + parseInt(this.state.amount);
-      this.setState(data => {
-        this.state.data[a] = b;
-        this.state.amount = "";
-      });
-      this.forceUpdate();
-    }
-  };
 
   sendLabel = labelB => {
     var graphRef = firebase.database().ref(`GraphName/${this.state.name}`);
@@ -147,6 +127,15 @@ export default class AddProgress extends React.Component {
           }}
         >
           <Text>Save</Text>
+        </Button>
+        <Button
+          full
+          light
+          onPress={() => {
+            this.graphMonth(18);
+          }}
+        >
+          <Text>by Month</Text>
         </Button>
         <LineChart
           data={{
