@@ -17,15 +17,14 @@ import { LineChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 let dbVals = [];
+let test = true;
 export default class AddProgress extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       amount: "",
-      date: "",
       data: [0],
       labels: ["start"],
-      year: "",
       graphTitle: "",
       graphTitle2: "",
       name: "",
@@ -39,22 +38,59 @@ export default class AddProgress extends React.Component {
     header: null
   };
 
-  senditems = (item, item2) => {
+  senditems = item => {
     var itemListRef = firebase.database().ref(`Graphs/${this.state.name}`);
     var newItemRef = itemListRef.push();
     newItemRef.set({
       Values: item,
-      Dates: item2,
-      Year: this.state.year
+      Dates: this.state.fullDate
     });
-    this.onAddItem();
   };
 
-  filterDefault = v => {
+  convertToGraph = l => {
+    var tempdata = [0]
+    var tempLabel = ["start"]
+    var temp1 = parseInt(this.state.arr[0].money)
+    var temp2 = this.state.arr[0].time
+    for(let i =1; i < this.state.arr.length; i++){
+      if(this.state.arr[i].time === temp2){
+        temp1 = temp1 + parseInt(this.state.arr[i].money)
+        temp2 = this.state.arr[i].time
+      }
+      else{
+        tempdata.push(temp1);
+        tempLabel.push(temp2);
+        temp1 = parseInt(this.state.arr[i].money)
+        temp2 = this.state.arr[i].time
+      }
+    }
+    tempdata.push(temp1);
+    tempLabel.push(temp2);
+
     this.setState({
-      arr: v.filter(v => v.time.split("/")[0] == 18)
+      labels: tempLabel,
+      data: tempdata,
     });
-    
+  
+  };
+
+  // Retrieves Default Graph which only displays values for the particular month
+  filterDefault = (v,l) => {
+
+    this.setState({
+      arr: v.filter(v => v.time.split("/")[1] == new Date().getMonth() + 1)
+    });
+    //function that cycles through the array, and adds values together that are in the same day
+    this.convertToGraph(l);
+  };
+
+  reset = () => {
+    this.setState({
+      data: [0],
+      labels: ["start"],
+      arr: []
+    });
+    this.props.navigation.navigate("Home");
   };
 
   componentDidMount() {
@@ -63,11 +99,14 @@ export default class AddProgress extends React.Component {
         .database()
         .ref(`Graphs/${authenticate.displayName}`)
         .once("value", snapshot => {
+          
           snapshot.forEach(child => {
             var vals = child.val();
+            
             dbVals.push({ time: vals.Dates, money: vals.Values });
           });
-          this.filterDefault(dbVals);
+          this.filterDefault(dbVals,dbVals.length);
+          dbVals.length =0
         });
 
       var ref = firebase
@@ -92,8 +131,6 @@ export default class AddProgress extends React.Component {
 
     that.setState({
       //Setting the value of the date time
-      date2: day + "/" + month,
-      year: year,
       fullDate: day + "/" + month + "/" + year
     });
   }
@@ -128,15 +165,7 @@ export default class AddProgress extends React.Component {
         >
           <Text>Save</Text>
         </Button>
-        <Button
-          full
-          light
-          onPress={() => {
-            this.graphMonth(18);
-          }}
-        >
-          <Text>by Month</Text>
-        </Button>
+
         <LineChart
           data={{
             labels: this.state.labels,
@@ -166,7 +195,7 @@ export default class AddProgress extends React.Component {
           block
           success
           onPress={() => {
-            this.senditems(this.state.amount, this.state.date2);
+            this.senditems(this.state.amount);
           }}
         >
           <Text style={styles.buttonText}>Submit to Database</Text>
@@ -178,7 +207,7 @@ export default class AddProgress extends React.Component {
           block
           danger
           onPress={() => {
-            this.props.navigation.navigate("Home");
+            this.reset();
           }}
         >
           <Text style={styles.buttonText}>Home</Text>
