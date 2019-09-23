@@ -39,15 +39,22 @@ export default class AddProgress extends React.Component {
   };
 
   senditems = item => {
-    var itemListRef = firebase.database().ref(`Graphs/${this.state.name}`);
+    
+    firebase.auth().onAuthStateChanged(authenticate => {
+    var itemListRef = firebase.database().ref(`Graphs/${authenticate.displayName}`);
     var newItemRef = itemListRef.push();
     newItemRef.set({
       Values: item,
       Dates: this.state.fullDate
     });
+    });
+    this.setState({
+      labels: [...this.state.labels, this.state.fullDate],
+      data: [...this.state.data, item]
+    })
   };
 
-  convertToGraph = l => {
+  convertToGraph = () => {
     var tempdata = [0]
     var tempLabel = ["start"]
     var temp1 = parseInt(this.state.arr[0].money)
@@ -75,23 +82,16 @@ export default class AddProgress extends React.Component {
   };
 
   // Retrieves Default Graph which only displays values for the particular month
-  filterDefault = (v,l) => {
+  filterDefault = (v) => {
 
     this.setState({
       arr: v.filter(v => v.time.split("/")[1] == new Date().getMonth() + 1)
     });
     //function that cycles through the array, and adds values together that are in the same day
-    this.convertToGraph(l);
+    this.convertToGraph();
   };
 
-  reset = () => {
-    this.setState({
-      data: [0],
-      labels: ["start"],
-      arr: []
-    });
-    this.props.navigation.navigate("Home");
-  };
+
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
@@ -102,11 +102,12 @@ export default class AddProgress extends React.Component {
           
           snapshot.forEach(child => {
             var vals = child.val();
-            
             dbVals.push({ time: vals.Dates, money: vals.Values });
           });
-          this.filterDefault(dbVals,dbVals.length);
+          if(dbVals.length > 0){
+          this.filterDefault(dbVals);
           dbVals.length =0
+          }
         });
 
       var ref = firebase
