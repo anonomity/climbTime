@@ -10,7 +10,17 @@ import {
   Alert,
   FlatList
 } from "react-native";
-import { Form, Input, Item, Label, Button, Card, Content } from "native-base";
+import {
+  Form,
+  Input,
+  Item,
+  Label,
+  Button,
+  Card,
+  Content,
+  Picker,
+  Icon
+} from "native-base";
 import * as firebase from "firebase";
 
 import { LineChart } from "react-native-chart-kit";
@@ -18,6 +28,7 @@ import { LineChart } from "react-native-chart-kit";
 const screenWidth = Dimensions.get("window").width;
 let dbVals = [];
 let test = true;
+
 export default class AddProgress extends React.Component {
   constructor(props) {
     super(props);
@@ -29,7 +40,8 @@ export default class AddProgress extends React.Component {
       graphTitle2: "",
       name: "",
       arr: [],
-      fullDate: ""
+      fullArr: [],
+      selected: ""
     };
   }
 
@@ -38,78 +50,166 @@ export default class AddProgress extends React.Component {
     header: null
   };
 
-  senditems = item => {
+  onValueChange(val) {
     
-    firebase.auth().onAuthStateChanged(authenticate => {
-    var itemListRef = firebase.database().ref(`Graphs/${authenticate.displayName}`);
-    var newItemRef = itemListRef.push();
-    newItemRef.set({
-      Values: item,
-      Dates: this.state.fullDate
-    });
-    });
     this.setState({
-      labels: [...this.state.labels, this.state.fullDate],
-      data: [...this.state.data, item]
-    })
+      selected: val
+    });
+
+    firebase.auth().onAuthStateChanged(authenticate => {
+      this.callDb(authenticate.displayName,val)
+    });
+  }
+
+  senditems = (item,num) => {
+    firebase.auth().onAuthStateChanged(authenticate => {
+      var itemListRef = firebase
+        .database()
+        .ref(`Graphs/${authenticate.displayName}`);
+      var newItemRef = itemListRef.push();
+      newItemRef.set({
+        Values: item,
+        Year: new Date().getFullYear(),
+        Day: new Date().getDate(),
+        Month: new Date().getMonth() + 1,
+        Time: new Date().getHours() + ":"+ new Date().getMinutes()
+      });
+    });
+
+    var that = this;
+    var day = new Date().getDate(); //Current Date
+    var month = new Date().getMonth() + 1; //Current Month
+    var year = new Date().getFullYear(); //Current Year
+    var hour = new Date().getHours();
+    var minutes = new Date().getMinutes();
+
+    if(num == 0){
+      that.setState({
+        labels: [...this.state.labels, day],
+        data: [...this.state.data, item],
+        amount: ""
+      });
+    }
+    else if(num ==1){
+      that.setState({
+        labels: [...this.state.labels,month ],
+        data: [...this.state.data, item],
+        amount: ""
+      });
+    }
+    else if(num ==2){
+      that.setState({
+        labels: [...this.state.labels,hour + ":" + minutes ],
+        data: [...this.state.data, item],
+        amount: ""
+      });
+    }
+    
   };
 
-  convertToGraph = () => {
-    var tempdata = [0]
-    var tempLabel = ["start"]
-    var temp1 = parseInt(this.state.arr[0].money)
-    var temp2 = this.state.arr[0].time
-    for(let i =1; i < this.state.arr.length; i++){
-      if(this.state.arr[i].time === temp2){
-        temp1 = temp1 + parseInt(this.state.arr[i].money)
-        temp2 = this.state.arr[i].time
-      }
-      else{
-        tempdata.push(temp1);
-        tempLabel.push(temp2);
-        temp1 = parseInt(this.state.arr[i].money)
-        temp2 = this.state.arr[i].time
+  convertToGraph = num => {
+    var tempdata = [0];
+    var tempLabel = ["start"];
+
+    if(num ==0){
+      var temp1 = parseInt(this.state.arr[0].money);
+      var temp2 = this.state.arr[0].month;
+      for (let i = 1; i < this.state.arr.length; i++) {
+        if (this.state.arr[i].month === temp2) {
+          temp1 = temp1 + parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].month;
+        } else {
+          tempdata.push(temp1);
+          tempLabel.push(temp2);
+          temp1 = parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].month;
+        }
       }
     }
+    else if(num ==1){
+      var temp1 = parseInt(this.state.arr[0].money);
+      var temp2 = this.state.arr[0].day;
+      for (let i = 1; i < this.state.arr.length; i++) {
+        if (this.state.arr[i].day === temp2) {
+          temp1 = temp1 + parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].day;
+        } else {
+          tempdata.push(temp1);
+          tempLabel.push(temp2);
+          temp1 = parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].day;
+        }
+      }
+    }
+    else if(num ==2){
+      var temp1 = parseInt(this.state.arr[0].money);
+      var temp2 = this.state.arr[0].time;
+      for (let i = 1; i < this.state.arr.length; i++) {
+        if (this.state.arr[i].time === temp2) {
+          temp1 = temp1 + parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].time;
+        } else {
+          tempdata.push(temp1);
+          tempLabel.push(temp2);
+          temp1 = parseInt(this.state.arr[i].money);
+          temp2 = this.state.arr[i].time;
+        }
+      }
+    }
+
+
     tempdata.push(temp1);
     tempLabel.push(temp2);
 
+    
     this.setState({
       labels: tempLabel,
-      data: tempdata,
+      data: tempdata
     });
-  
   };
+
+  callDb = (name,num) =>{
+    firebase
+        .database()
+        .ref(`Graphs/${name}`)
+        .once("value", snapshot => {
+          snapshot.forEach(child => {
+            var vals = child.val();
+            dbVals.push({ time: vals.Time, year: vals.Year,day: vals.Day, month: vals.Month,  money: vals.Values });
+          });
+          if (dbVals.length > 0) {
+            this.filterDefault(dbVals, num);
+            dbVals.length = 0;
+          }
+        });
+    
+  }
 
   // Retrieves Default Graph which only displays values for the particular month
-  filterDefault = (v) => {
+  filterDefault = (v, num) => {
+    if (num == 1) {
+      
+      this.setState({
+        arr: v.filter(v => v.month == new Date().getMonth() + 1),
+      });
+    } else if (num == 0) {
+      this.setState({
+        arr: v.filter(v => v.year == new Date().getFullYear())
+      });
+    } else if (num == 2) {
+      this.setState({
+        arr: v.filter(v => v.day == new Date().getDate())
+      });
+    }
 
-    this.setState({
-      arr: v.filter(v => v.time.split("/")[1] == new Date().getMonth() + 1)
-    });
     //function that cycles through the array, and adds values together that are in the same day
-    this.convertToGraph();
+    this.convertToGraph(num);
   };
-
-
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
-      firebase
-        .database()
-        .ref(`Graphs/${authenticate.displayName}`)
-        .once("value", snapshot => {
-          
-          snapshot.forEach(child => {
-            var vals = child.val();
-            dbVals.push({ time: vals.Dates, money: vals.Values });
-          });
-          if(dbVals.length > 0){
-          this.filterDefault(dbVals);
-          dbVals.length =0
-          }
-        });
-
+      
+      this.callDb(authenticate.displayName,1);
       var ref = firebase
         .database()
         .ref(`GraphName/${authenticate.displayName}`);
@@ -137,11 +237,15 @@ export default class AddProgress extends React.Component {
   }
 
   sendLabel = labelB => {
-    var graphRef = firebase.database().ref(`GraphName/${this.state.name}`);
-    graphRef.once("value").then(function(snapshot) {
-      var newItemRef2 = graphRef.push();
-      newItemRef2.set({
-        Graphlabel: labelB
+    firebase.auth().onAuthStateChanged(authenticate => {
+      var graphRef = firebase
+        .database()
+        .ref(`GraphName/${authenticate.displayName}`);
+      graphRef.once("value").then(function(snapshot) {
+        var newItemRef2 = graphRef.push();
+        newItemRef2.set({
+          Graphlabel: labelB
+        });
       });
     });
   };
@@ -166,7 +270,20 @@ export default class AddProgress extends React.Component {
         >
           <Text>Save</Text>
         </Button>
-
+        <Form>
+          <Picker
+            mode="dropdown"
+            iosHeader="Select how to see Graph"
+            iosIcon={<Icon name="arrow-down" />}
+            style={{ width: undefined }}
+            selectedValue={this.state.selected}
+            onValueChange={this.onValueChange.bind(this)}
+          >
+            <Picker.Item label="By Month" value="1" />
+            <Picker.Item label="By Year" value="0" />
+            <Picker.Item label="By Day" value="2" />
+          </Picker>
+        </Form>
         <LineChart
           data={{
             labels: this.state.labels,
@@ -196,7 +313,7 @@ export default class AddProgress extends React.Component {
           block
           success
           onPress={() => {
-            this.senditems(this.state.amount);
+            this.senditems(this.state.amount,this.state.selected);
           }}
         >
           <Text style={styles.buttonText}>Submit to Database</Text>
@@ -208,7 +325,7 @@ export default class AddProgress extends React.Component {
           block
           danger
           onPress={() => {
-            this.reset();
+            this.props.navigation.navigate("Home");
           }}
         >
           <Text style={styles.buttonText}>Home</Text>
