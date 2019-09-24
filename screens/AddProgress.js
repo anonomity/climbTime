@@ -51,17 +51,16 @@ export default class AddProgress extends React.Component {
   };
 
   onValueChange(val) {
-    
     this.setState({
       selected: val
     });
 
     firebase.auth().onAuthStateChanged(authenticate => {
-      this.callDb(authenticate.displayName,val)
+      this.callDb(authenticate.displayName, val);
     });
   }
 
-  senditems = (item,num) => {
+  senditems = (item, num) => {
     firebase.auth().onAuthStateChanged(authenticate => {
       var itemListRef = firebase
         .database()
@@ -72,7 +71,7 @@ export default class AddProgress extends React.Component {
         Year: new Date().getFullYear(),
         Day: new Date().getDate(),
         Month: new Date().getMonth() + 1,
-        Time: new Date().getHours() + ":"+ new Date().getMinutes()
+        Time: new Date().getHours() + ":" + new Date().getMinutes()
       });
     });
 
@@ -83,35 +82,32 @@ export default class AddProgress extends React.Component {
     var hour = new Date().getHours();
     var minutes = new Date().getMinutes();
 
-    if(num == 0){
+    if (num == 0) {
       that.setState({
         labels: [...this.state.labels, day],
         data: [...this.state.data, item],
         amount: ""
       });
-    }
-    else if(num ==1){
+    } else if (num == 1) {
       that.setState({
-        labels: [...this.state.labels,month ],
+        labels: [...this.state.labels, month],
+        data: [...this.state.data, item],
+        amount: ""
+      });
+    } else if (num == 2) {
+      that.setState({
+        labels: [...this.state.labels, hour + ":" + minutes],
         data: [...this.state.data, item],
         amount: ""
       });
     }
-    else if(num ==2){
-      that.setState({
-        labels: [...this.state.labels,hour + ":" + minutes ],
-        data: [...this.state.data, item],
-        amount: ""
-      });
-    }
-    
   };
 
   convertToGraph = num => {
     var tempdata = [0];
     var tempLabel = ["start"];
 
-    if(num ==0){
+    if (num == 0) {
       var temp1 = parseInt(this.state.arr[0].money);
       var temp2 = this.state.arr[0].month;
       for (let i = 1; i < this.state.arr.length; i++) {
@@ -125,8 +121,7 @@ export default class AddProgress extends React.Component {
           temp2 = this.state.arr[i].month;
         }
       }
-    }
-    else if(num ==1){
+    } else if (num == 1) {
       var temp1 = parseInt(this.state.arr[0].money);
       var temp2 = this.state.arr[0].day;
       for (let i = 1; i < this.state.arr.length; i++) {
@@ -140,8 +135,7 @@ export default class AddProgress extends React.Component {
           temp2 = this.state.arr[i].day;
         }
       }
-    }
-    else if(num ==2){
+    } else if (num == 2) {
       var temp1 = parseInt(this.state.arr[0].money);
       var temp2 = this.state.arr[0].time;
       for (let i = 1; i < this.state.arr.length; i++) {
@@ -157,40 +151,42 @@ export default class AddProgress extends React.Component {
       }
     }
 
-
     tempdata.push(temp1);
     tempLabel.push(temp2);
 
-    
     this.setState({
       labels: tempLabel,
       data: tempdata
     });
   };
 
-  callDb = (name,num) =>{
+  callDb = (name, num) => {
     firebase
-        .database()
-        .ref(`Graphs/${name}`)
-        .once("value", snapshot => {
-          snapshot.forEach(child => {
-            var vals = child.val();
-            dbVals.push({ time: vals.Time, year: vals.Year,day: vals.Day, month: vals.Month,  money: vals.Values });
+      .database()
+      .ref(`Graphs/${name}`)
+      .once("value", snapshot => {
+        snapshot.forEach(child => {
+          var vals = child.val();
+          dbVals.push({
+            time: vals.Time,
+            year: vals.Year,
+            day: vals.Day,
+            month: vals.Month,
+            money: vals.Values
           });
-          if (dbVals.length > 0) {
-            this.filterDefault(dbVals, num);
-            dbVals.length = 0;
-          }
         });
-    
-  }
+        if (dbVals.length > 0) {
+          this.filterDefault(dbVals, num);
+          dbVals.length = 0;
+        }
+      });
+  };
 
   // Retrieves Default Graph which only displays values for the particular month
   filterDefault = (v, num) => {
     if (num == 1) {
-      
       this.setState({
-        arr: v.filter(v => v.month == new Date().getMonth() + 1),
+        arr: v.filter(v => v.month == new Date().getMonth() + 1)
       });
     } else if (num == 0) {
       this.setState({
@@ -236,15 +232,31 @@ export default class AddProgress extends React.Component {
     });
   }
 
+
   sendLabel = labelB => {
     firebase.auth().onAuthStateChanged(authenticate => {
-      var graphRef = firebase
+       var newPostKey = firebase
+         .database()
+         .ref()
+         .child(`GraphName/${authenticate.displayName}/`).key
+     
+      firebase
+        .database()
+        .ref()
+        .child("/GraphName/" + authenticate.displayName+"/"+newPostKey)
+        .update({ Graphlabel: labelB });
+
+      var ref = firebase
         .database()
         .ref(`GraphName/${authenticate.displayName}`);
-      graphRef.once("value").then(function(snapshot) {
-        var newItemRef2 = graphRef.push();
-        newItemRef2.set({
-          Graphlabel: labelB
+      ref.on("value", snapshot => {
+        snapshot.forEach(child => {
+          var vals2 = child.val();
+          const imie = authenticate.displayName;
+          this.setState({
+            name: imie,
+            graphTitle2: vals2.Graphlabel
+          });
         });
       });
     });
@@ -313,7 +325,7 @@ export default class AddProgress extends React.Component {
           block
           success
           onPress={() => {
-            this.senditems(this.state.amount,this.state.selected);
+            this.senditems(this.state.amount, this.state.selected);
           }}
         >
           <Text style={styles.buttonText}>Submit to Database</Text>
