@@ -46,7 +46,7 @@ export default class Third extends React.Component {
   }
 
   static navigationOptions = {
-    title: "Graph2",
+    title: "Graph3",
     header: null
   };
 
@@ -64,7 +64,7 @@ export default class Third extends React.Component {
     firebase.auth().onAuthStateChanged(authenticate => {
       var itemListRef = firebase
         .database()
-        .ref(`Graph2/${authenticate.displayName}`);
+        .ref(`Graph3/${authenticate.displayName}`);
       var newItemRef = itemListRef.push();
       newItemRef.set({
         Values: item,
@@ -163,7 +163,7 @@ export default class Third extends React.Component {
   callDb = (name, num) => {
     firebase
       .database()
-      .ref(`Graph2/${name}`)
+      .ref(`Graph3/${name}`)
       .once("value", snapshot => {
         snapshot.forEach(child => {
           var vals = child.val();
@@ -208,7 +208,7 @@ export default class Third extends React.Component {
       this.callDb(authenticate.displayName,1);
       var ref = firebase
         .database()
-        .ref(`GraphName2/${authenticate.displayName}`);
+        .ref(`GraphName3/${authenticate.displayName}`);
       ref.on("value", snapshot => {
         snapshot.forEach(child => {
           var vals2 = child.val();
@@ -238,17 +238,17 @@ export default class Third extends React.Component {
        var newPostKey = firebase
          .database()
          .ref()
-         .child(`GraphName2/${authenticate.displayName}/`).key
+         .child(`GraphName3/${authenticate.displayName}/`).key
      
       firebase
         .database()
         .ref()
-        .child("/GraphName2/" + authenticate.displayName+"/"+newPostKey)
+        .child("/GraphName3/" + authenticate.displayName+"/"+newPostKey)
         .update({ Graphlabel: labelB });
 
       var ref = firebase
         .database()
-        .ref(`GraphName2/${authenticate.displayName}`);
+        .ref(`GraphName3/${authenticate.displayName}`);
       ref.on("value", snapshot => {
         snapshot.forEach(child => {
           var vals2 = child.val();

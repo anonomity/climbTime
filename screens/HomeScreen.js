@@ -1,18 +1,18 @@
 import React from "react";
-import { StyleSheet, Text, View, Image,TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import { Form, Input, Item, Label, Button } from "native-base";
 import * as firebase from "firebase";
 import ThreeAxisSensor from "expo-sensors/build/ThreeAxisSensor";
+import { grey } from "ansi-colors";
 
 export default class HomeScreen extends React.Component {
-
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       name: "",
       hours: "",
       minutes: ""
-    }
+    };
   }
   static navigationOptions = {
     title: "Home",
@@ -21,70 +21,104 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
-      if(authenticate){
+      if (authenticate) {
         this.setState({
           name: authenticate.displayName
-        })
+        });
       } else {
         this.props.navigation.replace("Signin");
       }
-    })
+    });
     var that = this;
     var time = new Date().getHours();
     var time2 = new Date().getMinutes();
 
     that.setState({
-        hours: time,
-        minutes: time2
-    })
+      hours: time,
+      minutes: time2
+    });
   }
 
-  signoutUser =() => {
-      firebase
-        .auth()
-        .signOut()
-        .then(() => console.log("signout") )
-        .catch( error => alert(error.message))
-  }
-   render() {
+  signoutUser = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => console.log("signout"))
+      .catch(error => alert(error.message));
+  };
+  render() {
     return (
       <View style={styles.container}>
         <Text style={styles.HeaderText}>ClimbTime</Text>
-        <Text>{this.state.hours} : {this.state.minutes}</Text>
+
         <View style={styles.logoContainer}>
-        
-          <Image style={styles.iconContainer} source={require("../assets/Progress.png")} />
-          
+          <Image
+            style={styles.iconContainer}
+            source={require("../assets/Progress.png")}
+          />
         </View>
-        <Text style={styles.infoText}>Powered by Progress</Text>
-        <View style={styles.userDetails}>
-          <Text>Welcome {this.state.name}</Text>
+        <View style={styles.logoBut}>
+          <View style={styles.row1}>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph1");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/1.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph2");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/2.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph3");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/3.png")} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.row2}>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph4");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/4.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph5");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/5.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.imgStyle}
+              onPress={() => {
+                this.props.navigation.navigate("Graph6");
+              }}
+            >
+              <Image style={styles.img} source={require("../assets/6.png")} />
+            </TouchableOpacity>
+            </View>
         </View>
-        <TouchableOpacity
-          style={styles.floatButton3}
-          onPress={() => {
-            this.props.navigation.navigate("Financez");
-          }}
-        ><Text style={styles.buttonPress}>Start Tracking Finances</Text>
-         
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.floatButton}
-          onPress={() => {
-            this.props.navigation.navigate("Graph");
-          }}
-        ><Text style={styles.buttonPress}>Start Tracking..</Text>
-         
-        </TouchableOpacity>
         <TouchableOpacity
           style={styles.floatButton2}
-          onPress ={() => {
+          onPress={() => {
             this.signoutUser();
           }}
-        ><Text style={styles.buttonPress}>Sign Out</Text>
-         
+        >
+          <Text style={styles.buttonPress}>Sign Out</Text>
         </TouchableOpacity>
-       
       </View>
     );
   }
@@ -102,20 +136,19 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "400"
   },
-  floatButton: {
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 500,
-    fontWeight: "bold",
-    position: "absolute",
-    bottom: 70,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#FFF",
-    height: 55,
-    backgroundColor: "#B83227"
+  row1: { 
+    flexDirection: "row", 
+    justifyContent: "space-around" ,
+    position: "relative",
+    alignContent: "center",
+
+  },
+  row2: { 
+    flexDirection: "row", 
+    justifyContent: "space-around" ,
+    position: "relative",
+    alignContent: "center",
+    
   },
   floatButton2: {
     borderWidth: 1,
@@ -130,27 +163,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFF",
     height: 55,
-    backgroundColor: "#019031"
+    backgroundColor: "#B83227"
   },
-  floatButton3: {
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 500,
-    fontWeight: "bold",
-    position: "absolute",
-    bottom: 120,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#FFF",
-    height: 55,
-    backgroundColor: "#019031"
+
+  img: {
+    width: 125,
+    height: 125
+  },
+  logoBut: {
+    marginTop: 50,
+    marginBottom: 325
+  },
+  imgStyle: {
+    borderWidth: 5,
+    shadowRadius: 10,
+    shadowColor:"#7B8788",
+    borderColor:"#B83227",
+    borderRadius: 2
   },
   logoContainer: {
     alignItems: "center",
-    marginTop: 100,
-    marginBottom: 100
+    marginTop: 30,
+   
   },
   iconContainer: {
     width: 250,
@@ -159,26 +193,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#B83227",
     borderRadius: 100
-   
   },
-  userDetails: {},
-  infoText: {
-    fontSize: 25,
-    fontWeight: "200",
-    paddingLeft: 10,
-    paddingTop: 2
-  },
-  button: {
-    marginTop: 20
-  },
-  buttonText: {
-    color: "#fff"
-  },
+
+
   HeaderText: {
     fontSize: 80,
     fontWeight: "400",
     color: "#B83227",
     fontWeight: "bold"
-
   }
 });

@@ -9,7 +9,10 @@ import SignInScreen from "./screens/SignInScreen";
 import SignUpScreen from "./screens/SignUpScreen";
 import AddProgress from "./screens/AddProgress";
 import Finances from "./screens/Finances";
-
+import Third from "./screens/Third";
+import Fourth from "./screens/Fourth";
+import Fifth from "./screens/Fifth";
+import Sixth from "./screens/Sixth";
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -30,9 +33,12 @@ const MainNavigator = createStackNavigator(
     Signin: { screen: SignInScreen },
     Signup: { screen: SignUpScreen },
     Home: { screen: HomeScreen },
-    Graph: { screen: AddProgress },
-    Financez: {screen: Finances}
-    
+    Graph1: { screen: Finances },
+    Graph2: { screen: AddProgress },
+    Graph3: { screen: Third },
+    Graph4: { screen: Fourth },
+    Graph5: { screen: Fifth },
+    Graph6: { screen: Sixth }
   },
   {
     initialRouteName: "Loading"
