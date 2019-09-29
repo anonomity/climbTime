@@ -24,6 +24,7 @@ import {
 import * as firebase from "firebase";
 
 import { LineChart } from "react-native-chart-kit";
+import { name } from "./HomeScreen";
 
 const screenWidth = Dimensions.get("window").width;
 let dbVals = [];
@@ -46,7 +47,7 @@ export default class AddProgress extends React.Component {
   }
 
   static navigationOptions = {
-    title: "Graph",
+    title: "Graph1",
     header: null
   };
 
@@ -55,24 +56,18 @@ export default class AddProgress extends React.Component {
       selected: val
     });
 
-    firebase.auth().onAuthStateChanged(authenticate => {
-      this.callDb(authenticate.displayName, val);
-    });
+    this.callDb(this.state.name, val);
   }
 
   senditems = (item, num) => {
-    firebase.auth().onAuthStateChanged(authenticate => {
-      var itemListRef = firebase
-        .database()
-        .ref(`Graphs/${authenticate.displayName}`);
-      var newItemRef = itemListRef.push();
-      newItemRef.set({
-        Values: item,
-        Year: new Date().getFullYear(),
-        Day: new Date().getDate(),
-        Month: new Date().getMonth() + 1,
-        Time: new Date().getHours() + ":" + new Date().getMinutes()
-      });
+    var itemListRef = firebase.database().ref(`Graph1/${this.state.name}`);
+    var newItemRef = itemListRef.push();
+    newItemRef.set({
+      Values: item,
+      Year: new Date().getFullYear(),
+      Day: new Date().getDate(),
+      Month: new Date().getMonth() + 1,
+      Time: new Date().getHours() + ":" + new Date().getMinutes()
     });
 
     var that = this;
@@ -163,7 +158,7 @@ export default class AddProgress extends React.Component {
   callDb = (name, num) => {
     firebase
       .database()
-      .ref(`Graphs/${name}`)
+      .ref(`Graph1/${name}`)
       .once("value", snapshot => {
         snapshot.forEach(child => {
           var vals = child.val();
@@ -204,21 +199,22 @@ export default class AddProgress extends React.Component {
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
-      
-      this.callDb(authenticate.displayName,1);
-      var ref = firebase
-        .database()
-        .ref(`GraphName/${authenticate.displayName}`);
-      ref.on("value", snapshot => {
-        snapshot.forEach(child => {
-          var vals2 = child.val();
-          const imie = authenticate.displayName;
-          this.setState({
-            name: imie,
-            graphTitle2: vals2.Graphlabel
+      if (authenticate) {
+        this.callDb(authenticate.displayName, 1);
+        var ref = firebase.database().ref(`GraphName1`);
+        ref.on("value", snapshot => {
+          snapshot.forEach(child => {
+            var vals2 = child.val();
+            const imie = authenticate.displayName;
+            this.setState({
+              name: imie,
+              graphTitle2: vals2.Graphlabel
+            });
           });
         });
-      });
+      } else {
+        this.props.navigation.replace("Signin");
+      }
     });
 
     var that = this;
@@ -232,31 +228,20 @@ export default class AddProgress extends React.Component {
     });
   }
 
-
   sendLabel = labelB => {
-    firebase.auth().onAuthStateChanged(authenticate => {
-       var newPostKey = firebase
-         .database()
-         .ref()
-         .child(`GraphName/${authenticate.displayName}/`).key
-     
-      firebase
-        .database()
-        .ref()
-        .child("/GraphName/" + authenticate.displayName+"/"+newPostKey)
-        .update({ Graphlabel: labelB });
+    firebase
+      .database()
+      .ref()
+      .child("GraphName1")
+      .update({ Graphlabel: labelB });
 
-      var ref = firebase
-        .database()
-        .ref(`GraphName/${authenticate.displayName}`);
-      ref.on("value", snapshot => {
-        snapshot.forEach(child => {
-          var vals2 = child.val();
-          const imie = authenticate.displayName;
-          this.setState({
-            name: imie,
-            graphTitle2: vals2.Graphlabel
-          });
+    var ref = firebase.database().ref(`GraphName1`);
+    ref.on("value", snapshot => {
+      snapshot.forEach(child => {
+        var vals2 = child.val();
+
+        this.setState({
+          graphTitle2: vals2.Graphlabel
         });
       });
     });
