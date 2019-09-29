@@ -144,14 +144,14 @@ const styles = StyleSheet.create({
   },
   row1: { 
     flexDirection: "row", 
-   
+    justifyContent: "center",
     position: "relative",
     alignContent: "center",
 
   },
   row2: { 
     flexDirection: "row", 
-   
+    justifyContent: "center",
     position: "relative",
     alignContent: "center",
     
@@ -189,12 +189,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginTop: 30,
+    marginTop: 20,
    
   },
   iconContainer: {
-    width: 250,
-    height: 250,
+    width: 175,
+    height: 175,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: genColor,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
 
 
   HeaderText: {
-    fontSize: 80,
+    fontSize: 55,
     fontWeight: "400",
     color: genColor,
     fontWeight: "bold",
