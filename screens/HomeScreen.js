@@ -5,6 +5,8 @@ import * as firebase from "firebase";
 import ThreeAxisSensor from "expo-sensors/build/ThreeAxisSensor";
 import { grey } from "ansi-colors";
 
+
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -20,11 +22,13 @@ export default class HomeScreen extends React.Component {
   };
 
   componentDidMount() {
+    
     firebase.auth().onAuthStateChanged(authenticate => {
       if (authenticate) {
         this.setState({
           name: authenticate.displayName
         });
+        var name = authenticate.displayName
       } else {
         this.props.navigation.replace("Signin");
       }
@@ -32,7 +36,7 @@ export default class HomeScreen extends React.Component {
     var that = this;
     var time = new Date().getHours();
     var time2 = new Date().getMinutes();
-
+    
     that.setState({
       hours: time,
       minutes: time2
@@ -50,7 +54,7 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <Text style={styles.HeaderText}>ClimbTime</Text>
-
+        <Text>Hey {this.state.name}!</Text>
         <View style={styles.logoContainer}>
           <Image
             style={styles.iconContainer}
@@ -84,6 +88,7 @@ export default class HomeScreen extends React.Component {
               <Image style={styles.img} source={require("../assets/3.png")} />
             </TouchableOpacity>
           </View>
+          
           <View style={styles.row2}>
             <TouchableOpacity
               style={styles.imgStyle}
@@ -123,6 +128,7 @@ export default class HomeScreen extends React.Component {
     );
   }
 }
+const genColor = "#004D40"
 
 const styles = StyleSheet.create({
   container: {
@@ -138,14 +144,14 @@ const styles = StyleSheet.create({
   },
   row1: { 
     flexDirection: "row", 
-    justifyContent: "space-around" ,
+   
     position: "relative",
     alignContent: "center",
 
   },
   row2: { 
     flexDirection: "row", 
-    justifyContent: "space-around" ,
+   
     position: "relative",
     alignContent: "center",
     
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFF",
     height: 55,
-    backgroundColor: "#B83227"
+    backgroundColor: genColor
   },
 
   img: {
@@ -171,15 +177,15 @@ const styles = StyleSheet.create({
     height: 125
   },
   logoBut: {
-    marginTop: 50,
-    marginBottom: 325
+    marginTop: 25,
+    marginBottom: 375
   },
   imgStyle: {
-    borderWidth: 5,
-    shadowRadius: 10,
+    borderWidth: 2,
+    shadowRadius: 100,
     shadowColor:"#7B8788",
-    borderColor:"#B83227",
-    borderRadius: 2
+    borderColor:"#E0E0E0",
+    borderRadius: 50
   },
   logoContainer: {
     alignItems: "center",
@@ -191,7 +197,7 @@ const styles = StyleSheet.create({
     height: 250,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#B83227",
+    backgroundColor: genColor,
     borderRadius: 100
   },
 
@@ -199,7 +205,7 @@ const styles = StyleSheet.create({
   HeaderText: {
     fontSize: 80,
     fontWeight: "400",
-    color: "#B83227",
-    fontWeight: "bold"
+    color: genColor,
+    fontWeight: "bold",
   }
 });

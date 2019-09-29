@@ -8,7 +8,8 @@ import {
   TouchableHighlight,
   TextInput,
   Alert,
-  FlatList
+  FlatList,
+  TouchableOpacity
 } from "react-native";
 import {
   Form,
@@ -47,7 +48,7 @@ export default class AddProgress extends React.Component {
   }
 
   static navigationOptions = {
-    title: "Graph1",
+    title: "Graph2",
     header: null
   };
 
@@ -60,7 +61,7 @@ export default class AddProgress extends React.Component {
   }
 
   senditems = (item, num) => {
-    var itemListRef = firebase.database().ref(`Graph1/${this.state.name}`);
+    var itemListRef = firebase.database().ref(`Graph2/${this.state.name}`);
     var newItemRef = itemListRef.push();
     newItemRef.set({
       Values: item,
@@ -158,7 +159,7 @@ export default class AddProgress extends React.Component {
   callDb = (name, num) => {
     firebase
       .database()
-      .ref(`Graph1/${name}`)
+      .ref(`Graph2/${name}`)
       .once("value", snapshot => {
         snapshot.forEach(child => {
           var vals = child.val();
@@ -201,7 +202,7 @@ export default class AddProgress extends React.Component {
     firebase.auth().onAuthStateChanged(authenticate => {
       if (authenticate) {
         this.callDb(authenticate.displayName, 1);
-        var ref = firebase.database().ref(`GraphName1`);
+        var ref = firebase.database().ref(`GraphName2`);
         ref.on("value", snapshot => {
           snapshot.forEach(child => {
             var vals2 = child.val();
@@ -232,10 +233,10 @@ export default class AddProgress extends React.Component {
     firebase
       .database()
       .ref()
-      .child("GraphName1")
+      .child("GraphName2")
       .update({ Graphlabel: labelB });
 
-    var ref = firebase.database().ref(`GraphName1`);
+    var ref = firebase.database().ref(`GraphName2`);
     ref.on("value", snapshot => {
       snapshot.forEach(child => {
         var vals2 = child.val();
@@ -250,7 +251,7 @@ export default class AddProgress extends React.Component {
     return (
       <Content>
         <Item style={styles.button}>
-          <Input
+          <Input style={styles.firstIn}
             onChangeText={labelB => {
               this.setState({ graphTitle: labelB });
             }}
@@ -267,7 +268,7 @@ export default class AddProgress extends React.Component {
         >
           <Text>Save</Text>
         </Button>
-        <Form>
+        <Form style={styles.formCon}> 
           <Picker
             mode="dropdown"
             iosHeader="Select how to see Graph"
@@ -295,38 +296,32 @@ export default class AddProgress extends React.Component {
           chartConfig={chartConfig}
         />
         <Text style={styles.title}>{this.state.graphTitle2}</Text>
-        <TextInput
-          style={styles.itemInput}
-          onChangeText={text => {
-            this.setState({ amount: text });
-          }}
-          value={this.state.amount}
-          placeholder="Enter Amount"
-        />
-
-        <Button
-          style={styles.button}
-          full
-          block
-          success
+        <View style={styles.inputCon}>
+          <TextInput
+            style={styles.itemInput}
+            onChangeText={text => {
+              this.setState({ amount: text });
+            }}
+            value={this.state.amount}
+            placeholder="Enter Amount"
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.floatButton1}
           onPress={() => {
             this.senditems(this.state.amount, this.state.selected);
           }}
         >
-          <Text style={styles.buttonText}>Submit to Database</Text>
-        </Button>
-
-        <Button
-          style={styles.button}
-          full
-          block
-          danger
+          <Text style={styles.buttonPress}>Submit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.floatButton2}
           onPress={() => {
             this.props.navigation.navigate("Home");
           }}
         >
-          <Text style={styles.buttonText}>Home</Text>
-        </Button>
+          <Text style={styles.buttonPress}>Home</Text>
+        </TouchableOpacity>
       </Content>
     );
   }
@@ -339,12 +334,60 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 20
   },
+  firstIn :{
+    marginTop:10
+  },
+  formCon :{
+    marginTop:30,
+    borderColor: "#DAE0E2",
+    borderWidth:1,
+    marginBottom: 5
+  },
+  inputCon: {
+    borderWidth: 2,
+    borderColor: "#BCAAA4"
+  },
   logoContainer: {
     alignItems: "center",
     marginTop: 100,
     marginBottom: 100
   },
+  buttonPress: {
+    color: "#FFF",
+    fontSize: 25,
+    fontWeight: "400"
+  },
+  floatButton1: {
+    borderColor: "rgba(0,0,0,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 500,
+    fontWeight: "bold",
+    marginBottom: 100,
+    marginTop: 50,
 
+    bottom: 20,
+    borderRadius: 1,
+
+    borderColor: "#FFF",
+    height: 55,
+    backgroundColor: "#004D40"
+  },
+  floatButton2: {
+    marginBottom: 10,
+    borderColor: "rgba(0,0,0,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 500,
+    fontWeight: "bold",
+    position: "absolute",
+    bottom: 40,
+    borderRadius: 1,
+
+    borderColor: "#FFF",
+    height: 55,
+    backgroundColor: "#004D40"
+  },
   iconContainer: {
     width: 250,
     height: 250,
@@ -354,7 +397,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     bottom: 50
   },
-  userDetails: {},
 
   button: {
     marginTop: 20
@@ -383,8 +425,8 @@ const styles = StyleSheet.create({
 });
 
 const chartConfig = {
-  backgroundGradientFrom: "#B83227",
-  backgroundGradientTo: "#BA2F16",
+  backgroundGradientFrom: "#8D6E63",
+  backgroundGradientTo: "#795548",
   color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
   strokeWidth: 2 // optional, default 3
 };

@@ -8,7 +8,8 @@ import {
   TouchableHighlight,
   TextInput,
   Alert,
-  FlatList
+  FlatList,
+  TouchableOpacity
 } from "react-native";
 import {
   Form,
@@ -24,12 +25,13 @@ import {
 import * as firebase from "firebase";
 
 import { LineChart } from "react-native-chart-kit";
+import { name } from "./HomeScreen";
 
 const screenWidth = Dimensions.get("window").width;
 let dbVals = [];
 let test = true;
 
-export default class Fifth extends React.Component {
+export default class AddProgress extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -55,24 +57,18 @@ export default class Fifth extends React.Component {
       selected: val
     });
 
-    firebase.auth().onAuthStateChanged(authenticate => {
-      this.callDb(authenticate.displayName, val);
-    });
+    this.callDb(this.state.name, val);
   }
 
   senditems = (item, num) => {
-    firebase.auth().onAuthStateChanged(authenticate => {
-      var itemListRef = firebase
-        .database()
-        .ref(`Graph5/${authenticate.displayName}`);
-      var newItemRef = itemListRef.push();
-      newItemRef.set({
-        Values: item,
-        Year: new Date().getFullYear(),
-        Day: new Date().getDate(),
-        Month: new Date().getMonth() + 1,
-        Time: new Date().getHours() + ":" + new Date().getMinutes()
-      });
+    var itemListRef = firebase.database().ref(`Graph5/${this.state.name}`);
+    var newItemRef = itemListRef.push();
+    newItemRef.set({
+      Values: item,
+      Year: new Date().getFullYear(),
+      Day: new Date().getDate(),
+      Month: new Date().getMonth() + 1,
+      Time: new Date().getHours() + ":" + new Date().getMinutes()
     });
 
     var that = this;
@@ -204,21 +200,22 @@ export default class Fifth extends React.Component {
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged(authenticate => {
-      
-      this.callDb(authenticate.displayName,1);
-      var ref = firebase
-        .database()
-        .ref(`GraphName5/${authenticate.displayName}`);
-      ref.on("value", snapshot => {
-        snapshot.forEach(child => {
-          var vals2 = child.val();
-          const imie = authenticate.displayName;
-          this.setState({
-            name: imie,
-            graphTitle2: vals2.Graphlabel
+      if (authenticate) {
+        this.callDb(authenticate.displayName, 1);
+        var ref = firebase.database().ref(`GraphName5`);
+        ref.on("value", snapshot => {
+          snapshot.forEach(child => {
+            var vals2 = child.val();
+            const imie = authenticate.displayName;
+            this.setState({
+              name: imie,
+              graphTitle2: vals2.Graphlabel
+            });
           });
         });
-      });
+      } else {
+        this.props.navigation.replace("Signin");
+      }
     });
 
     var that = this;
@@ -232,31 +229,20 @@ export default class Fifth extends React.Component {
     });
   }
 
-
   sendLabel = labelB => {
-    firebase.auth().onAuthStateChanged(authenticate => {
-       var newPostKey = firebase
-         .database()
-         .ref()
-         .child(`GraphName5/${authenticate.displayName}/`).key
-     
-      firebase
-        .database()
-        .ref()
-        .child("/GraphName5/" + authenticate.displayName+"/"+newPostKey)
-        .update({ Graphlabel: labelB });
+    firebase
+      .database()
+      .ref()
+      .child("GraphName5")
+      .update({ Graphlabel: labelB });
 
-      var ref = firebase
-        .database()
-        .ref(`GraphName5/${authenticate.displayName}`);
-      ref.on("value", snapshot => {
-        snapshot.forEach(child => {
-          var vals2 = child.val();
-          const imie = authenticate.displayName;
-          this.setState({
-            name: imie,
-            graphTitle2: vals2.Graphlabel
-          });
+    var ref = firebase.database().ref(`GraphName5`);
+    ref.on("value", snapshot => {
+      snapshot.forEach(child => {
+        var vals2 = child.val();
+
+        this.setState({
+          graphTitle2: vals2.Graphlabel
         });
       });
     });
@@ -266,6 +252,7 @@ export default class Fifth extends React.Component {
       <Content>
         <Item style={styles.button}>
           <Input
+            style={styles.firstIn}
             onChangeText={labelB => {
               this.setState({ graphTitle: labelB });
             }}
@@ -282,7 +269,7 @@ export default class Fifth extends React.Component {
         >
           <Text>Save</Text>
         </Button>
-        <Form>
+        <Form style={styles.formCon}>
           <Picker
             mode="dropdown"
             iosHeader="Select how to see Graph"
@@ -310,38 +297,32 @@ export default class Fifth extends React.Component {
           chartConfig={chartConfig}
         />
         <Text style={styles.title}>{this.state.graphTitle2}</Text>
-        <TextInput
-          style={styles.itemInput}
-          onChangeText={text => {
-            this.setState({ amount: text });
-          }}
-          value={this.state.amount}
-          placeholder="Enter Amount"
-        />
-
-        <Button
-          style={styles.button}
-          full
-          block
-          success
+        <View style={styles.inputCon}>
+          <TextInput
+            style={styles.itemInput}
+            onChangeText={text => {
+              this.setState({ amount: text });
+            }}
+            value={this.state.amount}
+            placeholder="Enter Amount"
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.floatButton1}
           onPress={() => {
             this.senditems(this.state.amount, this.state.selected);
           }}
         >
-          <Text style={styles.buttonText}>Submit to Database</Text>
-        </Button>
-
-        <Button
-          style={styles.button}
-          full
-          block
-          danger
+          <Text style={styles.buttonPress}>Submit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.floatButton2}
           onPress={() => {
             this.props.navigation.navigate("Home");
           }}
         >
-          <Text style={styles.buttonText}>Home</Text>
-        </Button>
+          <Text style={styles.buttonPress}>Home</Text>
+        </TouchableOpacity>
       </Content>
     );
   }
@@ -354,12 +335,60 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 20
   },
+  firstIn: {
+    marginTop: 10
+  },
+  formCon: {
+    marginTop: 30,
+    borderColor: "#DAE0E2",
+    borderWidth: 1,
+    marginBottom: 5
+  },
+  inputCon: {
+    borderWidth: 2,
+    borderColor: "#BCAAA4"
+  },
   logoContainer: {
     alignItems: "center",
     marginTop: 100,
     marginBottom: 100
   },
+  buttonPress: {
+    color: "#FFF",
+    fontSize: 25,
+    fontWeight: "400"
+  },
+  floatButton1: {
+    borderColor: "rgba(0,0,0,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 500,
+    fontWeight: "bold",
+    marginBottom: 100,
+    marginTop: 50,
 
+    bottom: 20,
+    borderRadius: 1,
+
+    borderColor: "#FFF",
+    height: 55,
+    backgroundColor: "#004D40"
+  },
+  floatButton2: {
+    marginBottom: 10,
+    borderColor: "rgba(0,0,0,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 500,
+    fontWeight: "bold",
+    position: "absolute",
+    bottom: 40,
+    borderRadius: 1,
+
+    borderColor: "#FFF",
+    height: 55,
+    backgroundColor: "#004D40"
+  },
   iconContainer: {
     width: 250,
     height: 250,
@@ -369,7 +398,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     bottom: 50
   },
-  userDetails: {},
 
   button: {
     marginTop: 20
@@ -398,8 +426,8 @@ const styles = StyleSheet.create({
 });
 
 const chartConfig = {
-  backgroundGradientFrom: "#B83227",
-  backgroundGradientTo: "#BA2F16",
+  backgroundGradientFrom: "#8D6E63",
+  backgroundGradientTo: "#795548",
   color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
   strokeWidth: 2 // optional, default 3
 };
